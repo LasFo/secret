@@ -1,3 +1,10 @@
+cmake_install.cmake
+game
+Makefile
+CMakeCache.txt
+CMakeFiles/*
+SFML-2.5.1/*
+
 # Prerequisites
 *.d
 
