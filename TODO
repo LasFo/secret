@@ -1,0 +1,11 @@
+class to represent one screen(main text, mapping of coices to outcome)
+    class outcome (optional health penalty and next choice label)
+
+think of an encoding for the actual game data (text, choices->results)
+implement deserializer for the encoded stuff
+encode oves stuff
+
+
+
+---------nice to have but not must have-------------
+animation for fading out the text box after choice selection (decreasing size with each rendering)

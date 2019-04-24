@@ -3,15 +3,17 @@
 #include <sstream>
 // only for intermediate testing remove later
 #include <iostream>
+#include <cassert>
 
 
 size_t w_width = 1600;
 size_t w_height = 900;
 
-void drawChoices(size_t number, sf::RenderWindow& window /*, string text*/){
+void drawChoices(size_t number, size_t current_choice, sf::RenderWindow& window/*, string text*/){
     size_t text_box_size = w_height/4;
     size_t choice_box_size = w_height/9;
-    
+    assert(number > current_choice);
+
     // draw the main text box
     sf::RectangleShape displayed_text;
     displayed_text.setSize(sf::Vector2f(w_width - 10, text_box_size - 10));
@@ -26,7 +28,10 @@ void drawChoices(size_t number, sf::RenderWindow& window /*, string text*/){
         sf::RectangleShape choice;
         choice.setSize(sf::Vector2f(w_width - 10, choice_box_size - 10));
         choice.setOutlineThickness(5);
-        choice.setOutlineColor(sf::Color(169,169,169));
+        sf::Color col = current_choice == number ?
+                            sf::Color(255,220,0) :
+                            sf::Color(169,169,169);
+        choice.setOutlineColor(col);
         choice.setFillColor(sf::Color(0, 50, 0));
         choice.setPosition(5, w_height - (number+1) * choice_box_size);
         window.draw(choice);
@@ -55,18 +60,30 @@ int main(int argc, const char** argv) {
     fps_text.setPosition(w_width - 50, 10);
     fps_text.setFillColor(sf::Color::White);
 
+    int current_choice = 0;
+    size_t num_of_choices = 3;
     while (window.isOpen())
     {
+        // event handling
         sf::Event event;
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed || 
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
                 window.close();
+
+            if(event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Down)
+                        current_choice = --current_choice < 0 ? num_of_choices - 1 : current_choice;
+                if (event.key.code == sf::Keyboard::Up)
+                        current_choice = ++current_choice % num_of_choices;
+                if (event.key.code == sf::Keyboard::Enter)
+                        std::cout << current_choice << std::endl;
+            }
         }
 
         window.clear();
-        drawChoices(2, window);
+        drawChoices(num_of_choices, current_choice, window);
 
         // fps
         ++fps_counter;
