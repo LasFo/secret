@@ -5,6 +5,8 @@ think of an encoding for the actual game data (text, choices->results)
 implement deserializer for the encoded stuff
 encode oves stuff
 
+BGM/BGP
+
 
 
 ---------nice to have but not must have-------------

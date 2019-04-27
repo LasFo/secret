@@ -1,0 +1,2 @@
+begin<<<It's a cold, dark and misty night and you are sitting at a small camp with an old damaged tent. What will be your next step?<<<Sleep<<<well_slept<<<empty<<<Go forwards<<<TODO<<<empty<<<Turn around and go backwards<<<TODO<<<empty<<<
+well_slept<<<You slept very well and see a deep canyon behind your back,\nin front of you is a great split tree.\nWhat is your next step?<<<Try to jump over the canyon<<<game_over<<<You failed and slip down.... game over!<<<Go forwards to the tree<<<TODO<<<You see a great forest with many trees.<<<
