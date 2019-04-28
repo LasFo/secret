@@ -1,9 +1,10 @@
 #include "SFML/Graphics.hpp"
+#include "model.h"
 #include <ctime>
 #include <sstream>
+#include <cassert>
 // only for intermediate testing remove later
 #include <iostream>
-#include <cassert>
 
 
 size_t w_width = 1600;
@@ -39,7 +40,8 @@ void drawChoices(size_t number, size_t current_choice, sf::RenderWindow& window/
 }
 
 int main(int argc, const char** argv) {
-    
+    screenMap smap;
+    initializeScreenMap(smap);
     if (argc == 3) {
         w_width = atoi(argv[1]);
         w_height = atoi(argv[2]);
