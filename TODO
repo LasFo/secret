@@ -1,17 +1,5 @@
 
-finalize deserializer for the encoded stuff and store it in a map
-
-inetegrate the map intialization in the main programm
-
-write a function that displays one screen
-    void displayScreen(window&, screen&);
-
-introduce checks for low hp
-
-introduce check for finished game if(east && west && south)
-
-make variables for hp, label_map, cond_map
-
+make finale
 
 BGM/BGP
 

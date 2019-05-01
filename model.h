@@ -14,8 +14,9 @@ struct choice {
     std::string add_text_;
     std::string add_text_second_;
     std::string visited_;
+    std::string condition_;
     std::pair<std::string, bool> set_cond_;
-    int hp_;
+    int hp_ = 0;
 };
 
 struct screen {
@@ -28,4 +29,4 @@ struct screen {
 
 typedef std::map<std::string, screen> screenMap;
 
-void initializeScreenMap(screenMap& map);
+void initializeScreenMap(screenMap& map, size_t w_width);

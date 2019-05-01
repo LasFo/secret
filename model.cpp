@@ -3,6 +3,17 @@
 #include <cassert>
 #include "model.h"
 
+size_t w_width_ = 1600;
+
+std::string& insertLineBreaks(std::string& s) {
+     size_t th = w_width_ / 10;
+     while (th < s.size()) {
+        s.insert(th, 1, '\n');
+        th += w_width_ / 10;
+    }
+    return s;
+}
+
 choice::choice(std::string&& s) {
     size_t off = 0, end = 0;
     end = s.find(">>");
@@ -28,11 +39,13 @@ void choice::set(const std::string& key, std::string&& val) {
     } else if (key == "target_second") {
         target_second_ = std::move(val);
     } else if (key == "add_text") {
-        add_text_ = std::move(val);
+        add_text_ = std::move(insertLineBreaks(val));
     } else if (key == "add_text_second") {
-        add_text_second_ = std::move(val);
+        add_text_second_ = std::move(insertLineBreaks(val));
     } else if (key == "visited") {
         visited_ = std::move(val);
+    } else if (key == "condition") {
+        condition_ = std::move(val);
     } else if (key == "set_cond") {
         size_t col = val.find(':');
         assert(col != std::string::npos);
@@ -51,9 +64,9 @@ void choice::set(const std::string& key, std::string&& val) {
     }
 }
 
-void initializeScreenMap(screenMap& map){
+void initializeScreenMap(screenMap& map, size_t w_width) {
     std::ifstream ifs;
-
+    w_width_ = w_width;
     ifs.open("resources/text_data", std::ifstream::in);
     std::string s;
     while (getline(ifs,s)) {
@@ -66,6 +79,7 @@ void initializeScreenMap(screenMap& map){
         end = s.find("<<<", off);
         assert(end != std::string::npos);
         std::string main_text = s.substr(off, end - off);
+        insertLineBreaks(main_text);
         off = end + 3;
 
         std::vector<choice> choices;
