@@ -39,8 +39,8 @@ void drawChoices(
                             sf::Color(255,220,0) :
                             sf::Color(169,169,169);
         choice_box.setOutlineColor(col);
-        choice_box.setFillColor(sf::Color(0, 50, 0));
-        choice_box.setPosition(5, w_height - (i+1) * choice_box_size);
+        choice_box.setFillColor(sf::Color(0, 50, 0, 225));
+        choice_box.setPosition(5, w_height - (i+1) * choice_box_size + 5);
         window.draw(choice_box);
 
         sf::Text choice_text = getDefaultText(choice_box.getPosition() + sf::Vector2f(20, 20),
@@ -59,8 +59,8 @@ void drawScreen(
     displayed_text.setSize(sf::Vector2f(w_width - 10, text_box_size - 10));
     displayed_text.setOutlineThickness(5);
     displayed_text.setOutlineColor(sf::Color::Blue);
-    displayed_text.setFillColor(sf::Color(50, 0, 0));
-    displayed_text.setPosition(5, w_height - text_box_size - screen.choices_.size() * choice_box_size);
+    displayed_text.setFillColor(sf::Color(50, 0, 0, 200));
+    displayed_text.setPosition(5, w_height - text_box_size - screen.choices_.size() * choice_box_size + 5);
     window.draw(displayed_text);
 
     sf::Text main_text = getDefaultText(displayed_text.getPosition() + sf::Vector2f(20, 20),
@@ -70,7 +70,7 @@ void drawScreen(
     drawChoices(window, screen.choices_, current_choice, cond_map);
 }
 
-void displayAddText(sf::RenderWindow& window, const std::string& add_text) {
+void displayAddText(sf::RenderWindow& window, const std::string& add_text, sf::Sprite sp) {
     sf::RectangleShape add_text_box;
     add_text_box.setSize(sf::Vector2f(w_width - 10, text_box_size - 10));
     add_text_box.setOutlineThickness(5);
@@ -82,6 +82,7 @@ void displayAddText(sf::RenderWindow& window, const std::string& add_text) {
 
     while (window.isOpen()) {
         window.clear();
+        window.draw(sp);
         window.draw(add_text_box);
         window.draw(text);
         window.display();
@@ -108,19 +109,13 @@ std::string evaluateChoice(
         sf::RenderWindow& window,
         choice& c,
         std::unordered_set<std::string>& cond_map,
+        sf::Sprite& sp,
         int& hp) {
     hp += c.hp_;
     // check if this is a multi visit location
-    if (!c.set_cond_.first.empty()) {
-        if (c.set_cond_.second) {
-            cond_map.insert(c.set_cond_.first);
-        } else {
-            cond_map.erase(c.set_cond_.first);
-        }
-    }
     std::string next_tag;
     std::string add_text;
-    if (c.visited_.empty() || cond_map.insert(c.visited_).second) {
+    if (c.visited_.empty() || !cond_map.count(c.visited_)) {
         // single visit location
         next_tag = c.target_;
         add_text = c.add_text_;
@@ -129,9 +124,32 @@ std::string evaluateChoice(
         add_text = c.add_text_second_;
     }
     if (!add_text.empty()) {
-        displayAddText(window, add_text);
+        displayAddText(window, add_text, sp);
+    }
+    // update conditions if necessary
+    if (!c.set_cond_.first.empty()) {
+        if (c.set_cond_.second) {
+            cond_map.insert(c.set_cond_.first);
+        } else {
+            cond_map.erase(c.set_cond_.first);
+        }
+    }
+    if (!c.set_cond_second_.first.empty()) {
+        if (c.set_cond_second_.second) {
+            cond_map.insert(c.set_cond_second_.first);
+        } else {
+            cond_map.erase(c.set_cond_second_.first);
+        }
     }
     return next_tag;
+}
+
+bool choiceAvailable(
+        size_t cur_choice,
+        std::unordered_set<std::string> cond_map,
+        screenMap::iterator it) {
+    choice& c = it->second.choices_[cur_choice];
+    return c.condition_.empty() || cond_map.count(c.condition_);
 }
 
 int main(int argc, const char** argv) {
@@ -153,12 +171,19 @@ int main(int argc, const char** argv) {
     }
     sf::Text fps_text = getDefaultText(sf::Vector2f(w_width - 50, 10), "0");
     sf::Text hp_text = getDefaultText(sf::Vector2f(10, 10), "100");
+    hp_text.setOutlineThickness(11);
     hp_text.setFillColor(sf::Color::Red);
 
     int current_choice = 0;
     size_t num_of_choices = 3;
     auto it = smap.find("begin");
     int hp = 100;
+    sf::Texture tx;
+    if (!tx.loadFromFile("resources/begin.jpg"))
+    {
+        return 2;
+    }
+    sf::Sprite sprite(tx);
 
     while (window.isOpen())
     {
@@ -172,34 +197,46 @@ int main(int argc, const char** argv) {
 
             if(event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Down) {
-                        current_choice = --current_choice < 0 ? num_of_choices - 1 : current_choice;
+                        do {
+                            current_choice = --current_choice < 0 ? num_of_choices - 1 : current_choice;
+                        } while(!choiceAvailable(current_choice, cond_map, it));
                 }
                 if (event.key.code == sf::Keyboard::Up) {
-                        ++current_choice;
-                        current_choice = current_choice % num_of_choices;
+                        do {
+                            ++current_choice;
+                            current_choice = current_choice % num_of_choices;
+                        } while(!choiceAvailable(current_choice, cond_map, it));
                 }
                 if (event.key.code == sf::Keyboard::Enter) {
                     // look up in current screen to get next screen
                     assert(it->second.choices_.size() > static_cast<size_t>(current_choice));
                     choice& chosen = it->second.choices_[current_choice];
-                    std::string new_label = evaluateChoice(window, chosen, cond_map, hp);
+                    std::string new_label = evaluateChoice(window, chosen, cond_map, sprite, hp);
                     if (new_label == "game_over") {
                         cond_map.clear();
                         hp = 100;
-                        displayAddText(window, "You lost! Try Again!");
+                        sf::Sprite sp;
+                        displayAddText(window, "You lost! Try Again!", sp);
                         it = smap.find("begin");
                     } else {
                         it = smap.find(new_label);
                     }
+                    current_choice = 0;
+                    if (new_label == "chapter2_begin") {
+                        tx.loadFromFile("resources/chapter2.jpg");
+                    } else if (new_label == "begin") {
+                        tx.loadFromFile("resources/begin.jpg");
+                    }
                     if (cond_map.count("west") &&
                         cond_map.count("east") &&
                         cond_map.count("south")) {
-                        // you won
+                        // make sure it triggers only once
+                        cond_map.erase("east");
+                        current_choice = 2;
                         it = smap.find("final");
                     }
                     assert(it != smap.end());
                     num_of_choices = it->second.choices_.size();
-                    current_choice = 0;
                 }
             }
         }
@@ -207,14 +244,15 @@ int main(int argc, const char** argv) {
         if (hp < 70) {
             std::stringstream ss;
             ss << "Pass mal lieber auf du hast nur noch " << hp << " HP";
-            displayAddText(window, ss.str());
+            displayAddText(window, ss.str(), sprite);
             ss.str("");
             hp = 75;
             ss << "Naja ich heil dich mal ein bisschen. Jetzt hast du wieder " << hp << " HP";
-            displayAddText(window, ss.str());
+            displayAddText(window, ss.str(), sprite);
         }
 
         window.clear();
+        window.draw(sprite);
         drawScreen(window, it->second, current_choice, cond_map);
 
         // fps

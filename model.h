@@ -16,6 +16,7 @@ struct choice {
     std::string visited_;
     std::string condition_;
     std::pair<std::string, bool> set_cond_;
+    std::pair<std::string, bool> set_cond_second_;
     int hp_ = 0;
 };
 

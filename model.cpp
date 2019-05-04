@@ -57,6 +57,17 @@ void choice::set(const std::string& key, std::string&& val) {
         } else {
             assert(false);
         }
+    } else if (key == "set_cond_second") {
+        size_t col = val.find(':');
+        assert(col != std::string::npos);
+        set_cond_second_.first = val.substr(0, col);
+        if (val.substr(col+1) == "true") {
+            set_cond_second_.second = true;
+        } else if (val.substr(col+1) == "false") {
+            set_cond_second_.second = false;
+        } else {
+            assert(false);
+        }
     } else if (key == "hp") {
         hp_ = atoi(val.c_str());
     } else {
