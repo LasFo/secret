@@ -1,4 +1,5 @@
 #include "SFML/Graphics.hpp"
+#include "SFML/Audio.hpp"
 #include "model.h"
 #include <ctime>
 #include <sstream>
@@ -160,8 +161,7 @@ int main(int argc, const char** argv) {
         w_height = atoi(argv[2]);
     }
     initializeScreenMap(smap, w_width);
-    sf::RenderWindow window(sf::VideoMode(w_width, w_height), "SFML works!");
-    // TODO: get some background picture
+    sf::RenderWindow window(sf::VideoMode(w_width, w_height), "Awesome Game!");
     std::time_t old_time = std::time(nullptr);
     std::time_t new_time;
     uint32_t fps_counter = 0;
@@ -179,11 +179,21 @@ int main(int argc, const char** argv) {
     auto it = smap.find("begin");
     int hp = 100;
     sf::Texture tx;
+    
+    // back ground picture
     if (!tx.loadFromFile("resources/begin.jpg"))
     {
         return 2;
     }
     sf::Sprite sprite(tx);
+
+    // back ground music
+    sf::Music music;
+    if (!music.openFromFile("resources/chapter1.ogg")) {
+        return 3;
+    }
+    music.play();
+    music.setLoop(true);
 
     while (window.isOpen())
     {
@@ -218,14 +228,17 @@ int main(int argc, const char** argv) {
                         sf::Sprite sp;
                         displayAddText(window, "You lost! Try Again!", sp);
                         it = smap.find("begin");
+                        music.openFromFile("resources/chapter1.ogg");
+                        music.setLoop(true);
+                        music.play();
                     } else {
                         it = smap.find(new_label);
                     }
                     current_choice = 0;
                     if (new_label == "chapter2_begin") {
-                        tx.loadFromFile("resources/chapter2.jpg");
-                    } else if (new_label == "begin") {
-                        tx.loadFromFile("resources/begin.jpg");
+                        music.openFromFile("resources/chapter2.ogg");
+                        music.setLoop(true);
+                        music.play();
                     }
                     if (cond_map.count("west") &&
                         cond_map.count("east") &&
@@ -236,6 +249,9 @@ int main(int argc, const char** argv) {
                         it = smap.find("final");
                     }
                     assert(it != smap.end());
+                    if (!it->second.image_.empty()) {
+                        !tx.loadFromFile("resources/" + it->second.image_);
+                    }
                     num_of_choices = it->second.choices_.size();
                 }
             }

@@ -21,10 +21,11 @@ struct choice {
 };
 
 struct screen {
-    screen(std::string&& main_text, std::vector<choice>&& choices) :
-        main_text_(std::move(main_text)), choices_(std::move(choices)) {}
+    screen(std::string&& main_text, std::string&& image, std::vector<choice>&& choices) :
+        main_text_(std::move(main_text)), image_(std::move(image)), choices_(std::move(choices)) {}
 
     std::string main_text_;
+    std::string image_;
     std::vector<choice> choices_;
 };
 

@@ -89,9 +89,19 @@ void initializeScreenMap(screenMap& map, size_t w_width) {
 
         end = s.find("<<<", off);
         assert(end != std::string::npos);
+        // image is optional so assume it is not there
+        // and adjust if it is there
         std::string main_text = s.substr(off, end - off);
-        insertLineBreaks(main_text);
+        std::string image;
         off = end + 3;
+        if (main_text.find("image:") == 0u) {
+            image = main_text.substr(6);
+            end = s.find("<<<", off);
+            assert(end != std::string::npos);
+            main_text = s.substr(off, end - off);
+            off = end + 3;
+        }
+        insertLineBreaks(main_text);
 
         std::vector<choice> choices;
         while ((end = s.find("<<<", off)) != std::string::npos) {
@@ -103,6 +113,7 @@ void initializeScreenMap(screenMap& map, size_t w_width) {
         map.emplace(std::piecewise_construct,
                     std::forward_as_tuple(std::move(label)),
                     std::forward_as_tuple(std::move(main_text),
+                                          std::move(image),
                                           std::move(choices)));
     }
 }

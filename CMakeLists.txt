@@ -11,6 +11,7 @@ add_executable(game main.cpp)
 target_link_libraries(game sfml-graphics)
 target_link_libraries(game sfml-window)
 target_link_libraries(game sfml-system)
+target_link_libraries(game sfml-audio)
 target_link_libraries(game game-model)
 
 if(MSVC)
