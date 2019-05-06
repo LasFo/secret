@@ -4,15 +4,18 @@
 #include <ctime>
 #include <sstream>
 #include <cassert>
+#include <cstring>
 #include <unordered_set>
+#include <filesystem>
 // only for intermediate testing remove later
 #include <iostream>
 
 size_t w_width = 1600;
 size_t w_height = 900;
-size_t text_box_size = w_height/4;
+size_t text_box_size = w_height/6;
 size_t choice_box_size = w_height/9;
 sf::Font font;
+std::filesystem::path imgp;
 
 sf::Text getDefaultText(sf::Vector2f position, std::string txt) {
     sf::Text text;
@@ -40,7 +43,7 @@ void drawChoices(
                             sf::Color(255,220,0) :
                             sf::Color(169,169,169);
         choice_box.setOutlineColor(col);
-        choice_box.setFillColor(sf::Color(0, 50, 0, 225));
+        choice_box.setFillColor(sf::Color(0, 50, 0, 200));
         choice_box.setPosition(5, w_height - (i+1) * choice_box_size + 5);
         window.draw(choice_box);
 
@@ -60,7 +63,7 @@ void drawScreen(
     displayed_text.setSize(sf::Vector2f(w_width - 10, text_box_size - 10));
     displayed_text.setOutlineThickness(5);
     displayed_text.setOutlineColor(sf::Color::Blue);
-    displayed_text.setFillColor(sf::Color(50, 0, 0, 200));
+    displayed_text.setFillColor(sf::Color(50, 0, 0, 150));
     displayed_text.setPosition(5, w_height - text_box_size - screen.choices_.size() * choice_box_size + 5);
     window.draw(displayed_text);
 
@@ -76,7 +79,7 @@ void displayAddText(sf::RenderWindow& window, const std::string& add_text, sf::S
     add_text_box.setSize(sf::Vector2f(w_width - 10, text_box_size - 10));
     add_text_box.setOutlineThickness(5);
     add_text_box.setOutlineColor(sf::Color::Blue);
-    add_text_box.setFillColor(sf::Color(50, 0, 0));
+    add_text_box.setFillColor(sf::Color(50, 0, 0, 150));
     add_text_box.setPosition(5, w_height - text_box_size - 3 * choice_box_size);
 
     sf::Text text = getDefaultText(add_text_box.getPosition() + sf::Vector2f(20, 20), add_text);
@@ -153,12 +156,28 @@ bool choiceAvailable(
     return c.condition_.empty() || cond_map.count(c.condition_);
 }
 
+void checkHP(sf::RenderWindow& window, sf::Sprite sprite, int& hp) {
+    if (hp < 70) {
+        std::stringstream ss;
+        ss << "Pass mal lieber auf du hast nur noch " << hp << " HP";
+        displayAddText(window, ss.str(), sprite);
+        ss.str("");
+        hp = 75;
+        ss << "Naja ich heil dich mal ein bisschen. Jetzt hast du wieder " << hp << " HP";
+        displayAddText(window, ss.str(), sprite);
+    }
+}
+
 int main(int argc, const char** argv) {
     std::unordered_set<std::string> cond_map;
     screenMap smap;
-    if (argc == 3) {
-        w_width = atoi(argv[1]);
-        w_height = atoi(argv[2]);
+    bool enable_fps = false;
+    if (argc >= 2) {
+        enable_fps = strcmp(argv[1], "-f") == 0;
+    }
+    if (argc >= 4) {
+        w_width = atoi(argv[2]);
+        w_height = atoi(argv[3]);
     }
     initializeScreenMap(smap, w_width);
     sf::RenderWindow window(sf::VideoMode(w_width, w_height), "Awesome Game!");
@@ -166,7 +185,8 @@ int main(int argc, const char** argv) {
     std::time_t new_time;
     uint32_t fps_counter = 0;
     uint32_t last_fps = 0;
-    if (!font.loadFromFile("resources/sansation.ttf")) {
+    std::filesystem::path fontp = "resources";
+    if (!font.loadFromFile(fontp / "sansation.ttf")) {
         return 1;
     }
     sf::Text fps_text = getDefaultText(sf::Vector2f(w_width - 50, 10), "0");
@@ -181,7 +201,9 @@ int main(int argc, const char** argv) {
     sf::Texture tx;
     
     // back ground picture
-    if (!tx.loadFromFile("resources/begin.jpg"))
+    imgp = "resources";
+    imgp /= "bgp";
+    if (!tx.loadFromFile(imgp / "fire.jpg"))
     {
         return 2;
     }
@@ -189,7 +211,8 @@ int main(int argc, const char** argv) {
 
     // back ground music
     sf::Music music;
-    if (!music.openFromFile("resources/chapter1.ogg")) {
+    std::filesystem::path musicp = "resources";
+    if (!music.openFromFile(musicp / "chapter1.ogg")) {
         return 3;
     }
     music.play();
@@ -228,7 +251,7 @@ int main(int argc, const char** argv) {
                         sf::Sprite sp;
                         displayAddText(window, "You lost! Try Again!", sp);
                         it = smap.find("begin");
-                        music.openFromFile("resources/chapter1.ogg");
+                        music.openFromFile(musicp / "chapter1.ogg");
                         music.setLoop(true);
                         music.play();
                     } else {
@@ -236,7 +259,7 @@ int main(int argc, const char** argv) {
                     }
                     current_choice = 0;
                     if (new_label == "chapter2_begin") {
-                        music.openFromFile("resources/chapter2.ogg");
+                        music.openFromFile(musicp / "chapter2.ogg");
                         music.setLoop(true);
                         music.play();
                     }
@@ -248,46 +271,40 @@ int main(int argc, const char** argv) {
                         current_choice = 2;
                         it = smap.find("final");
                     }
+                    
+                    checkHP(window, sprite, hp);
                     assert(it != smap.end());
                     if (!it->second.image_.empty()) {
-                        !tx.loadFromFile("resources/" + it->second.image_);
+                        tx.loadFromFile(imgp / it->second.image_);
                     }
                     num_of_choices = it->second.choices_.size();
                 }
             }
         }
 
-        if (hp < 70) {
-            std::stringstream ss;
-            ss << "Pass mal lieber auf du hast nur noch " << hp << " HP";
-            displayAddText(window, ss.str(), sprite);
-            ss.str("");
-            hp = 75;
-            ss << "Naja ich heil dich mal ein bisschen. Jetzt hast du wieder " << hp << " HP";
-            displayAddText(window, ss.str(), sprite);
-        }
-
         window.clear();
         window.draw(sprite);
         drawScreen(window, it->second, current_choice, cond_map);
 
-        // fps
-        ++fps_counter;
-        std::time(&new_time);
-        if (new_time != old_time) {
-            old_time = new_time;
-            last_fps = fps_counter;
-            fps_counter = 0;
-        }
         std::stringstream ss;
-        ss << last_fps;
-        fps_text.setString(ss.str());
-        window.draw(fps_text);
-
-        ss.str("");
         ss << hp;
         hp_text.setString(ss.str());
         window.draw(hp_text);
+
+        if (enable_fps) {
+            // fps
+            ++fps_counter;
+            std::time(&new_time);
+            if (new_time != old_time) {
+                old_time = new_time;
+                last_fps = fps_counter;
+                fps_counter = 0;
+            }
+            ss.str("");
+            ss << last_fps;
+            fps_text.setString(ss.str());
+            window.draw(fps_text);
+        }
 
         window.display();
     }
