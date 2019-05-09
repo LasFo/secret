@@ -20,6 +20,6 @@ Notes:
     You must use a compiler which supports c++17
 
 Example in linux after you downloaded/extracted the SFML binaries and installes cmake:
-    cmake CMakeLists.txt
-    make game
-    ./game
+    1. cmake CMakeLists.txt
+    2. make game
+    3. ./game
