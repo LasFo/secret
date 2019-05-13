@@ -15,7 +15,7 @@ size_t w_height = 900;
 size_t text_box_size = w_height/6;
 size_t choice_box_size = w_height/9;
 sf::Font font;
-std::filesystem::path imgp;
+std::string imgp;
 
 sf::Text getDefaultText(sf::Vector2f position, std::string txt) {
     sf::Text text;
@@ -185,8 +185,8 @@ int main(int argc, const char** argv) {
     std::time_t new_time;
     uint32_t fps_counter = 0;
     uint32_t last_fps = 0;
-    std::filesystem::path fontp = "resources";
-    if (!font.loadFromFile(fontp / "sansation.ttf")) {
+    std::string fontp = "resources";
+    if (!font.loadFromFile(fontp + "/sansation.ttf")) {
         return 1;
     }
     sf::Text fps_text = getDefaultText(sf::Vector2f(w_width - 50, 10), "0");
@@ -202,8 +202,8 @@ int main(int argc, const char** argv) {
     
     // back ground picture
     imgp = "resources";
-    imgp /= "bgp";
-    if (!tx.loadFromFile(imgp / "fire.jpg"))
+    imgp += "/bgp";
+    if (!tx.loadFromFile(imgp + "/fire.jpg"))
     {
         return 2;
     }
@@ -211,8 +211,8 @@ int main(int argc, const char** argv) {
 
     // back ground music
     sf::Music music;
-    std::filesystem::path musicp = "resources";
-    if (!music.openFromFile(musicp / "chapter1.ogg")) {
+    std::string musicp = "resources";
+    if (!music.openFromFile(musicp + "/chapter1.ogg")) {
         return 3;
     }
     music.play();
@@ -251,7 +251,7 @@ int main(int argc, const char** argv) {
                         sf::Sprite sp;
                         displayAddText(window, "You lost! Try Again!", sp);
                         it = smap.find("begin");
-                        music.openFromFile(musicp / "chapter1.ogg");
+                        music.openFromFile(musicp + "/" + "chapter1.ogg");
                         music.setLoop(true);
                         music.play();
                     } else {
@@ -259,7 +259,7 @@ int main(int argc, const char** argv) {
                     }
                     current_choice = 0;
                     if (new_label == "chapter2_begin") {
-                        music.openFromFile(musicp / "chapter2.ogg");
+                        music.openFromFile(musicp + "/" + "chapter2.ogg");
                         music.setLoop(true);
                         music.play();
                     }
@@ -275,7 +275,7 @@ int main(int argc, const char** argv) {
                     checkHP(window, sprite, hp);
                     assert(it != smap.end());
                     if (!it->second.image_.empty()) {
-                        tx.loadFromFile(imgp / it->second.image_);
+                        tx.loadFromFile(imgp + "/" + it->second.image_);
                     }
                     num_of_choices = it->second.choices_.size();
                 }
